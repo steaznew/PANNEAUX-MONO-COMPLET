@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panneau LED P10</title>
+<style>
+:root {
+  --bg:#f0f4f8; --sur:#fff; --sur2:#f7f9fc; --brd:#e2e8f0;
+  --blu:#2563eb; --blu-l:#eff6ff; --blu-m:#dbeafe;
+  --pur:#7c3aed; --pur-l:#faf5ff; --pur-m:#ede9fe;
+  --amb:#d97706; --amb-l:#fffbeb; --amb-m:#fef3c7;
+  --red:#dc2626; --grn:#16a34a;
+  --sl:#1e293b; --sl2:#334155; --sl3:#64748b; --sl4:#94a3b8;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);font-family:'Segoe UI',system-ui,sans-serif;color:var(--sl);min-height:100vh;padding:12px;}
+
+/* HEADER */
+.hdr{background:var(--blu);border-radius:18px;padding:16px 18px;margin-bottom:14px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(37,99,235,.25);}
+.hdr-ic{width:46px;height:46px;background:rgba(255,255,255,.18);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.hdr h1{font-size:17px;font-weight:800;color:#fff;}
+.hdr p{font-size:11px;color:rgba(255,255,255,.75);margin-top:2px;}
+
+/* SCREENS */
+.screen{display:none;} .screen.active{display:block;}
+
+/* HOME */
+.hl{font-size:11px;font-weight:700;color:var(--sl3);text-transform:uppercase;letter-spacing:1.1px;margin-bottom:10px;padding-left:2px;}
+.mc{background:var(--sur);border:1.5px solid var(--brd);border-radius:16px;padding:15px 14px;margin-bottom:10px;display:flex;align-items:center;gap:13px;cursor:pointer;transition:all .15s;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+.mc:active{transform:scale(.98);}
+.mc-ic{width:48px;height:48px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.mc-ic.b{background:var(--blu-m);} .mc-ic.p{background:var(--pur-m);}
+.mc-t{font-size:15px;font-weight:800;color:var(--sl);}
+.mc-s{font-size:12px;color:var(--sl3);margin-top:2px;}
+.mc-arr{margin-left:auto;color:var(--sl4);font-size:20px;}
+
+/* CODE BOX */
+.code-box{background:var(--sur);border:1.5px solid var(--brd);border-radius:16px;padding:16px;margin-top:16px;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+.code-box h3{font-size:12px;font-weight:700;color:var(--sl3);margin-bottom:10px;}
+.code-box input{width:100%;background:var(--sur2);border:1.5px solid var(--brd);border-radius:10px;padding:11px 14px;font-size:15px;letter-spacing:4px;color:var(--sl);outline:none;transition:border .2s;}
+.code-box input:focus{border-color:var(--blu);}
+.code-err{color:var(--red);font-size:12px;margin-top:7px;display:none;font-weight:600;}
+.divider{height:1px;background:var(--brd);margin:16px 0;}
+
+/* BACK ROW */
+.back-row{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+.back-btn{background:var(--sur);border:1.5px solid var(--brd);border-radius:10px;padding:8px 13px;font-size:13px;font-weight:600;color:var(--sl2);cursor:pointer;display:flex;align-items:center;gap:5px;}
+.scr-title{font-size:15px;font-weight:800;color:var(--sl);}
+.scr-badge{display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;margin-left:auto;}
+.scr-badge.b{background:var(--blu-m);color:var(--blu);}
+.scr-badge.p{background:var(--pur-m);color:var(--pur);}
+.scr-badge.a{background:var(--amb-m);color:var(--amb);}
+
+/* FACE TOGGLE */
+.ftog{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.fbtn{padding:11px 8px;border-radius:12px;border:2px solid var(--brd);background:var(--sur);color:var(--sl3);font-size:13px;font-weight:700;cursor:pointer;text-align:center;transition:all .15s;}
+.fbtn.ab{border-color:var(--blu);background:var(--blu-l);color:var(--blu);}
+.fbtn.ap{border-color:var(--pur);background:var(--pur-l);color:var(--pur);}
+
+/* TABS */
+.tabs{display:flex;gap:4px;background:var(--sur);border:1.5px solid var(--brd);border-radius:13px;padding:4px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.tab{flex:1;text-align:center;padding:8px 2px;border-radius:9px;font-size:11px;font-weight:700;cursor:pointer;color:var(--sl3);border:none;background:none;transition:all .15s;}
+.tab.act-b{background:var(--blu);color:#fff;box-shadow:0 2px 8px rgba(37,99,235,.25);}
+.tab.act-a{background:var(--amb);color:#fff;box-shadow:0 2px 8px rgba(217,119,6,.2);}
+.btab{display:inline-block;background:var(--red);color:#fff;font-size:9px;font-weight:800;padding:1px 5px;border-radius:10px;margin-left:3px;vertical-align:middle;}
+
+.sub{display:none;} .sub.active{display:block;}
+
+/* CARD */
+.card{background:var(--sur);border:1.5px solid var(--brd);border-radius:16px;padding:15px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+.ctitle{font-size:11px;font-weight:800;color:var(--sl3);text-transform:uppercase;letter-spacing:1px;margin-bottom:13px;display:flex;align-items:center;gap:6px;}
+.ctitle.b{color:var(--blu);} .ctitle.p{color:var(--pur);} .ctitle.a{color:var(--amb);}
+
+/* FIELD */
+.field{margin-bottom:11px;}
+.field:last-child{margin-bottom:0;}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--sl3);margin-bottom:5px;}
+.field input{width:100%;background:var(--sur2);border:1.5px solid var(--brd);border-radius:10px;padding:10px 13px;color:var(--sl);font-size:14px;font-weight:600;outline:none;transition:border .2s;}
+.field input:focus{border-color:var(--blu);background:#fff;}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+/* DIM INFO */
+.dinfo{border-radius:10px;padding:10px 13px;font-size:12px;line-height:1.6;margin-top:8px;}
+.dinfo.b{background:var(--blu-l);border:1px solid var(--blu-m);color:var(--blu);}
+.dinfo.p{background:var(--pur-l);border:1px solid var(--pur-m);color:var(--pur);}
+.dinfo.a{background:var(--amb-l);border:1px solid var(--amb-m);color:var(--amb);}
+
+/* RES GRID */
+.rgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:13px;}
+.rcard{background:var(--sur2);border:1.5px solid var(--brd);border-radius:14px;padding:13px 12px;}
+.rcard .rl{font-size:11px;font-weight:600;color:var(--sl3);margin-bottom:4px;}
+.rcard .rv{font-size:19px;font-weight:900;line-height:1.1;color:var(--sl);}
+.rcard .rs{font-size:10px;color:var(--sl4);margin-top:4px;line-height:1.4;}
+.cb{color:var(--blu)!important;} .cp{color:var(--pur)!important;} .ca{color:var(--amb)!important;} .cr{color:var(--red)!important;}
+
+/* TOTAL */
+.tbox{border-radius:18px;padding:18px 20px;margin-bottom:13px;display:flex;justify-content:space-between;align-items:center;}
+.tbox.b{background:linear-gradient(135deg,var(--blu),#1d4ed8);}
+.tbox.p{background:linear-gradient(135deg,var(--pur),#6d28d9);}
+.tbox.a{background:linear-gradient(135deg,var(--amb),#b45309);}
+.tbox .tl{font-size:10px;font-weight:700;color:rgba(255,255,255,.8);margin-bottom:4px;letter-spacing:.8px;text-transform:uppercase;}
+.tbox .tv{font-size:30px;font-weight:900;color:#fff;}
+.tbox .tu{font-size:14px;font-weight:600;}
+.tbox .tr{text-align:right;font-size:11px;color:rgba(255,255,255,.75);line-height:1.8;}
+
+/* DETAIL */
+.drow{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--brd);font-size:13px;gap:8px;}
+.drow:last-child{border-bottom:none;}
+.dn{color:var(--sl);font-weight:700;font-size:13px;}
+.dc{font-size:11px;color:var(--sl3);margin-top:2px;line-height:1.4;}
+.dp{font-weight:800;color:var(--blu);white-space:nowrap;font-size:14px;}
+
+/* CANVAS */
+.cvwrap{background:var(--sur2);border:1.5px solid var(--brd);border-radius:14px;padding:12px;margin-bottom:12px;overflow-x:auto;}
+.cvwrap canvas{display:block;margin:0 auto;border-radius:6px;}
+.vislbl{display:flex;justify-content:space-between;font-size:11px;color:var(--sl3);margin-top:6px;font-weight:600;}
+
+/* BTN */
+.btn{width:100%;border:none;border-radius:13px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:14px;transition:all .15s;}
+.btn:active{transform:scale(.98);}
+.btn.b{background:var(--blu);color:#fff;box-shadow:0 4px 14px rgba(37,99,235,.3);}
+.btn.p{background:var(--pur);color:#fff;box-shadow:0 4px 14px rgba(124,58,237,.3);}
+.btn.a{background:var(--amb);color:#fff;box-shadow:0 4px 14px rgba(217,119,6,.25);}
+
+/* ALERT */
+.al{border-radius:10px;padding:10px 13px;font-size:12px;line-height:1.6;margin-bottom:0;font-weight:500;margin-top:8px;}
+.al.p{background:var(--pur-l);border:1px solid var(--pur-m);color:var(--pur);}
+
+/* REVIENT BADGE */
+.rbadge{display:inline-flex;align-items:center;gap:6px;background:var(--amb-m);color:var(--amb);font-size:11px;font-weight:800;padding:5px 12px;border-radius:20px;margin-bottom:14px;border:1px solid #fde68a;}
+
+/* DEVIS LIST */
+.dvitem{background:var(--sur);border:1.5px solid var(--brd);border-radius:14px;padding:13px;margin-bottom:9px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.dvitem.si{border-left:3px solid var(--blu);} .dvitem.do{border-left:3px solid var(--pur);}
+.dvtop{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:7px;}
+.dvnom{font-weight:800;font-size:14px;color:var(--sl);}
+.dvdate{font-size:11px;color:var(--sl3);margin-top:2px;}
+.dvprice{font-weight:900;font-size:15px;color:var(--blu);}
+.dvprice.p{color:var(--pur);}
+.delbtn{background:none;border:none;color:var(--sl4);cursor:pointer;font-size:16px;padding:0 4px;}
+.dvdet{font-size:11px;color:var(--sl3);line-height:1.7;}
+.fpill{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;margin-left:6px;}
+.fpill.s{background:var(--blu-m);color:var(--blu);} .fpill.d{background:var(--pur-m);color:var(--pur);}
+.x2pill{display:inline-block;background:var(--pur-m);color:var(--pur);font-size:9px;font-weight:800;padding:1px 5px;border-radius:6px;margin-left:3px;}
+.empty-st{text-align:center;color:var(--sl3);font-size:13px;padding:28px 0;}
+
+/* RULES */
+.rrow{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--brd);font-size:12px;}
+.rrow:last-child{border:none;}
+.rlbl{color:var(--sl3);font-weight:500;}
+.rval{font-weight:700;color:var(--sl);}
+.rval.b{color:var(--blu);} .rval.p{color:var(--pur);} .rval.a{color:var(--amb);} .rval.r{color:var(--red);}
+
+/* MODAL SAUVEGARDE */
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:1000;display:flex;align-items:flex-end;justify-content:center;}
+.modal-box{background:#fff;border-radius:22px 22px 0 0;padding:24px 20px 36px;width:100%;max-width:600px;box-shadow:0 -4px 30px rgba(0,0,0,.15);}
+.modal-title{font-size:16px;font-weight:800;color:var(--sl);margin-bottom:16px;}
+.modal-box .field label{font-size:13px;font-weight:600;color:var(--sl3);}
+.modal-box .field input{font-size:15px;padding:12px 14px;border:2px solid var(--brd);border-radius:12px;width:100%;background:var(--sur2);color:var(--sl);outline:none;}
+.modal-box .field input:focus{border-color:var(--blu);}
+.modal-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;}
+.modal-btns button{padding:13px;border-radius:12px;border:none;font-size:14px;font-weight:800;cursor:pointer;}
+.mbtn-cancel{background:var(--sur2);color:var(--sl3);}
+.mbtn-ok{background:var(--blu);color:#fff;}
+.mbtn-ok.p{background:var(--pur);}
+.mbtn-ok.a{background:var(--amb);}
+</style>
+</head>
+<body>
+<div style="max-width:600px;margin:0 auto">
+
+<div class="hdr">
+  <div class="hdr-ic">💡</div>
+  <div>
+    <h1>Panneau LED P10</h1>
+    <p>Modules 32×16 cm · Aluminium · WiFi · Alimentation</p>
+  </div>
+</div>
+
+<!-- ACCUEIL -->
+<div class="screen active" id="screen-home">
+  <div class="hl">Type de panneau</div>
+
+  <div class="mc" onclick="goCalc('simple')">
+    <div class="mc-ic b">📺</div>
+    <div>
+      <div class="mc-t">P10 Simple Face</div>
+      <div class="mc-s">Panneau standard · Prix de vente</div>
+    </div>
+    <div class="mc-arr">›</div>
+  </div>
+
+  <div class="mc" onclick="goCalc('double')">
+    <div class="mc-ic p">📺</div>
+    <div>
+      <div class="mc-t">P10 Double Face</div>
+      <div class="mc-s">2 faces visibles · Prix de vente</div>
+    </div>
+    <div class="mc-arr">›</div>
+  </div>
+
+  <div class="divider"></div>
+  <div class="hl">Espace professionnel</div>
+
+  <div class="code-box">
+    <h3>🔐 Code d'accès — Prix de revient</h3>
+    <input type="password" id="code-input" placeholder="• • • • • • • • •" oninput="checkCode()" maxlength="20">
+    <div class="code-err" id="code-err">❌ Code incorrect</div>
+  </div>
+</div>
+
+<!-- ÉCRAN VENTE -->
+<div class="screen" id="screen-calc">
+  <div class="back-row">
+    <button class="back-btn" onclick="goHome()">‹ Accueil</button>
+    <span class="scr-title" id="calc-title">P10 Simple Face</span>
+    <span class="scr-badge b" id="calc-badge">📺 Simple</span>
+  </div>
+
+  <div class="tabs">
+    <button class="tab act-b" id="vt0" onclick="showSub('dim')">📐 Dim.</button>
+    <button class="tab" id="vt1" onclick="showSub('prix')">⚙️ Prix</button>
+    <button class="tab" id="vt2" onclick="showSub('regles')">📏 Règles</button>
+    <button class="tab" id="vt3" onclick="showSub('devis')">📋 Devis<span class="btab" id="bv">0</span></button>
+  </div>
+
+  <!-- SUB: DIMENSIONS -->
+  <div class="sub active" id="sub-dim">
+    <div class="card">
+      <div class="ctitle b">📐 Dimensions</div>
+      <div class="field"><label>Hauteur (cm)</label><input type="number" id="v-h" value="40" min="1" oninput="calculer()"></div>
+      <div class="field"><label>Largeur (cm)</label><input type="number" id="v-w" value="200" min="1" oninput="calculer()"></div>
+      <div id="v-dinfo" class="dinfo b"></div>
+    </div>
+
+    <div class="card" id="support-card" style="display:none">
+      <div class="ctitle p">🏗️ Support Double Face <span style="color:var(--red);font-size:13px">*</span></div>
+      <div class="field"><label>Prix du support (DH) — obligatoire (0 si inclus)</label><input type="number" id="v-support" value="" placeholder="Ex: 500" step="50" oninput="calculer()"></div>
+      <div id="v-support-warn" style="display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:9px;padding:9px 12px;color:var(--red);font-size:12px;font-weight:600;margin-top:8px">⚠️ Veuillez saisir le prix du support (mettez 0 si pas de support).</div>
+    </div>
+
+    <div class="cvwrap">
+      <canvas id="cv-v" height="100"></canvas>
+      <div class="vislbl"><span id="vw-v"></span><span id="vh-v"></span></div>
+    </div>
+
+    <div class="rgrid" id="rg-v"></div>
+
+    <div class="tbox b" id="tbox-v">
+      <div>
+        <div class="tl">COÛT TOTAL</div>
+        <div class="tv"><span id="tot-v">0</span> <span class="tu">DH</span></div>
+      </div>
+      <div class="tr" id="tot-det-v"></div>
+    </div>
+
+    <div class="card">
+      <div class="ctitle">📊 Détail des coûts</div>
+      <div id="det-v"></div>
+    </div>
+
+    <!-- MARGE VENTE -->
+    <div class="card">
+      <div class="ctitle" style="color:var(--grn)">📈 Calcul de la marge</div>
+      <div class="field">
+        <label>Marge souhaitée (%)</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="number" id="v-marge" value="30" min="0" max="500" step="5" oninput="calculerMargeV()" style="flex:1">
+          <span style="font-weight:800;color:var(--grn);font-size:14px">%</span>
+        </div>
+      </div>
+      <div id="marge-result-v" style="margin-top:10px"></div>
+    </div>
+
+    <button class="btn b" id="save-btn-v" onclick="sauvegarder()">💾 Sauvegarder ce devis</button>
+  </div>
+
+  <!-- SUB: PRIX -->
+  <div class="sub" id="sub-prix">
+    <div class="card">
+      <div class="ctitle">🧩 Module LED</div>
+      <div class="field"><label>Prix par module (DH)</label><input type="number" id="p-module" value="70"></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">🔩 Aluminium</div>
+      <div class="field"><label>Barre 6m — Simple face (DH)</label><input type="number" id="p-alu" value="450"></div>
+      <div class="field"><label>Prix/m — Double face (DH/m)</label><input type="number" id="p-alu-df" value="100"></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">📌 Faux Cadre (barre 6m)</div>
+      <div class="field"><label>Prix par barre 6m (DH)</label><input type="number" id="p-foc" value="150"></div>
+    </div>
+    <div class="card" id="cache-config">
+      <div class="ctitle">🪟 Cache arrière (simple face)</div>
+      <div class="field"><label>Prix par m² (DH)</label><input type="number" id="p-cache" value="110"></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">🔗 Coudes</div>
+      <div class="r2">
+        <div class="field"><label>Simple face (DH/pc)</label><input type="number" id="p-coude" value="20"></div>
+        <div class="field"><label>Double face (DH/pc)</label><input type="number" id="p-coude-df" value="25"></div>
+      </div>
+      <div class="r2">
+        <div class="field"><label>Nb coudes simple</label><input type="number" id="nb-coude" value="4"></div>
+        <div class="field"><label>Nb coudes double</label><input type="number" id="nb-coude-df" value="4"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ctitle">📶 Cartes WiFi</div>
+      <div class="r2">
+        <div class="field"><label>Carte 2 lignes (DH)</label><input type="number" id="p-wifi2" value="100"></div>
+        <div class="field"><label>Carte 4 lignes (DH)</label><input type="number" id="p-wifi4" value="210"></div>
+      </div>
+      <div class="field"><label>Carte 8 lignes (DH)</label><input type="number" id="p-wifi8" value="310"></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">⚡ Alimentation</div>
+      <div class="r2">
+        <div class="field"><label>1 alimentation (DH)</label><input type="number" id="p-alim1" value="200"></div>
+        <div class="field"><label>Seuil 2 alim. (modules)</label><input type="number" id="seuil-alim" value="20"></div>
+      </div>
+      <div class="field"><label>2 alimentations (DH)</label><input type="number" id="p-alim2" value="400"></div>
+    </div>
+    <button class="btn b" onclick="calculer();showSub('dim')">✅ Appliquer et calculer</button>
+  </div>
+
+  <!-- SUB: RÈGLES -->
+  <div class="sub" id="sub-regles">
+    <div class="card">
+      <div class="ctitle b">📏 Simple Face</div>
+      <div class="rrow"><span class="rlbl">Module</span><span class="rval">32×16 cm</span></div>
+      <div class="rrow"><span class="rlbl">Cadre alu</span><span class="rval">4cm/côté = 8cm total</span></div>
+      <div class="rrow"><span class="rlbl">Rangées</span><span class="rval">(H−8cm) ÷ 16cm</span></div>
+      <div class="rrow"><span class="rlbl">Colonnes</span><span class="rval">(L−8cm) ÷ 32cm</span></div>
+      <div class="rrow"><span class="rlbl">Aluminium</span><span class="rval">périmètre × prix/m</span></div>
+      <div class="rrow"><span class="rlbl">Faux cadre</span><span class="rval">(cols+1) barres verticales</span></div>
+      <div class="rrow"><span class="rlbl">Cache arrière</span><span class="rval">m² × prix/m²</span></div>
+      <div class="rrow"><span class="rlbl">Coudes</span><span class="rval">4 × 20 DH</span></div>
+    </div>
+    <div class="card">
+      <div class="ctitle p">📏 Double Face — Différences</div>
+      <div class="rrow"><span class="rlbl">Modules</span><span class="rval p">× 2</span></div>
+      <div class="rrow"><span class="rlbl">Aluminium</span><span class="rval p">100 DH/m × périmètre</span></div>
+      <div class="rrow"><span class="rlbl">Faux cadre</span><span class="rval p">× 2</span></div>
+      <div class="rrow"><span class="rlbl">Cache arrière</span><span class="rval r">Supprimé</span></div>
+      <div class="rrow"><span class="rlbl">Coudes</span><span class="rval p">4 × 25 DH</span></div>
+      <div class="rrow"><span class="rlbl">Alimentations</span><span class="rval p">× 2</span></div>
+      <div class="rrow"><span class="rlbl">Support</span><span class="rval p">Saisie manuelle</span></div>
+    </div>
+    <div class="card">
+      <div class="ctitle a">📶 Carte WiFi (rangées verticales)</div>
+      <div class="rrow"><span class="rlbl">1–2 rangées</span><span class="rval a">Carte 2L → 100 DH</span></div>
+      <div class="rrow"><span class="rlbl">3–4 rangées</span><span class="rval a">Carte 4L → 210 DH</span></div>
+      <div class="rrow"><span class="rlbl">5–8 rangées</span><span class="rval a">Carte 8L → 310 DH</span></div>
+      <div class="rrow"><span class="rlbl">> 8 rangées</span><span class="rval a">Cumul de cartes</span></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">⚡ Alimentation</div>
+      <div class="rrow"><span class="rlbl">Simple ≤ 20 modules</span><span class="rval b">1 alim</span></div>
+      <div class="rrow"><span class="rlbl">Simple > 20 modules</span><span class="rval b">2 alim</span></div>
+      <div class="rrow"><span class="rlbl">Double ≤ 20 mod/face</span><span class="rval p">2 alim</span></div>
+      <div class="rrow"><span class="rlbl">Double > 20 mod/face</span><span class="rval p">4 alim</span></div>
+    </div>
+  </div>
+
+  <!-- SUB: DEVIS -->
+  <div class="sub" id="sub-devis">
+    <div class="card">
+      <div class="ctitle">📋 Devis sauvegardés</div>
+      <div id="dv-list-v"><div class="empty-st">Aucun devis sauvegardé</div></div>
+    </div>
+    <div id="dv-wrap-v" style="display:none">
+      <div class="tbox b">
+        <div><div class="tl">TOTAL TOUS DEVIS</div><div class="tv"><span id="dv-tot-v">0</span> <span class="tu">DH</span></div></div>
+        <div class="tr" id="dv-cnt-v"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ÉCRAN REVIENT -->
+<div class="screen" id="screen-revient">
+  <div class="back-row">
+    <button class="back-btn" onclick="goHome()">‹ Accueil</button>
+    <span class="scr-title">Prix de Revient</span>
+    <span class="scr-badge a">🔐 Privé</span>
+  </div>
+
+  <div class="rbadge">💰 Mode Prix de Revient — Accès privé</div>
+
+  <div class="ftog">
+    <button class="fbtn ab" id="rfbtn-s" onclick="setRevFace('simple')">📺 Simple Face</button>
+    <button class="fbtn" id="rfbtn-d" onclick="setRevFace('double')">📺 Double Face</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab act-a" id="rt0" onclick="showRevSub('dim')">📐 Dim.</button>
+    <button class="tab" id="rt1" onclick="showRevSub('prix')">⚙️ Prix</button>
+    <button class="tab" id="rt2" onclick="showRevSub('devis')">📋 Devis<span class="btab" id="br">0</span></button>
+  </div>
+
+  <!-- RSUB: DIMENSIONS -->
+  <div class="sub active" id="rsub-dim">
+    <div class="card">
+      <div class="ctitle a">📐 Dimensions</div>
+      <div class="field"><label>Hauteur (cm)</label><input type="number" id="r-h" value="40" min="1" oninput="calculerR()"></div>
+      <div class="field"><label>Largeur (cm)</label><input type="number" id="r-w" value="200" min="1" oninput="calculerR()"></div>
+      <div id="r-dinfo" class="dinfo b"></div>
+    </div>
+
+    <div class="card" id="r-support-card" style="display:none">
+      <div class="ctitle p">🏗️ Support Double Face <span style="color:var(--red);font-size:13px">*</span></div>
+      <div class="field"><label>Prix du support (DH) — obligatoire (0 si inclus)</label><input type="number" id="r-support" value="" placeholder="Ex: 500" step="50" oninput="calculerR()"></div>
+      <div id="r-support-warn" style="display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:9px;padding:9px 12px;color:var(--red);font-size:12px;font-weight:600;margin-top:8px">⚠️ Veuillez saisir le prix du support (mettez 0 si pas de support).</div>
+    </div>
+
+    <div class="cvwrap">
+      <canvas id="cv-r" height="100"></canvas>
+      <div class="vislbl"><span id="vw-r"></span><span id="vh-r"></span></div>
+    </div>
+
+    <div class="rgrid" id="rg-r"></div>
+
+    <div class="tbox a">
+      <div>
+        <div class="tl">COÛT DE REVIENT</div>
+        <div class="tv"><span id="tot-r">0</span> <span class="tu">DH</span></div>
+      </div>
+      <div class="tr" id="tot-det-r"></div>
+    </div>
+
+    <!-- MARGE -->
+    <div class="card" id="marge-card">
+      <div class="ctitle" style="color:var(--grn)">📈 Calcul de la marge</div>
+      <div class="field">
+        <label>Marge souhaitée (%)</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="number" id="r-marge" value="30" min="0" max="500" step="5" oninput="calculerMarge()" style="flex:1">
+          <span style="font-weight:800;color:var(--grn);font-size:14px">%</span>
+        </div>
+      </div>
+      <div id="marge-result" style="margin-top:10px"></div>
+    </div>
+
+    <div class="card">
+      <div class="ctitle">📊 Détail des coûts</div>
+      <div id="det-r"></div>
+    </div>
+
+    <button class="btn a" onclick="sauvegarderR()">💾 Sauvegarder ce devis</button>
+  </div>
+
+  <!-- RSUB: PRIX -->
+  <div class="sub" id="rsub-prix">
+    <div class="card">
+      <div class="ctitle">🧩 Module LED</div>
+      <div class="field"><label>Prix par module (DH)</label><input type="number" id="rp-module" value="45"></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">🔩 Aluminium</div>
+      <div class="field"><label>Barre 6m — Simple face (DH)</label><input type="number" id="rp-alu" value="300"></div>
+      <div class="field"><label>Prix/m — Double face (DH/m)</label><input type="number" id="rp-alu-df" value="100"></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">📌 Faux Cadre (barre 6m)</div>
+      <div class="field"><label>Prix par barre 6m (DH)</label><input type="number" id="rp-foc" value="100"></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">🪟 Cache arrière (simple face)</div>
+      <div class="field"><label>Prix par m² (DH)</label><input type="number" id="rp-cache" value="80"></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">🔗 Coudes</div>
+      <div class="r2">
+        <div class="field"><label>Simple face (DH/pc)</label><input type="number" id="rp-coude" value="15"></div>
+        <div class="field"><label>Double face (DH/pc)</label><input type="number" id="rp-coude-df" value="25"></div>
+      </div>
+      <div class="r2">
+        <div class="field"><label>Nb coudes simple</label><input type="number" id="rnb-coude" value="4"></div>
+        <div class="field"><label>Nb coudes double</label><input type="number" id="rnb-coude-df" value="4"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ctitle">📶 Cartes WiFi</div>
+      <div class="r2">
+        <div class="field"><label>Carte 2 lignes (DH)</label><input type="number" id="rp-wifi2" value="70"></div>
+        <div class="field"><label>Carte 4 lignes (DH)</label><input type="number" id="rp-wifi4" value="150"></div>
+      </div>
+      <div class="field"><label>Carte 8 lignes (DH)</label><input type="number" id="rp-wifi8" value="220"></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">⚡ Alimentation</div>
+      <div class="r2">
+        <div class="field"><label>1 alimentation (DH)</label><input type="number" id="rp-alim1" value="150"></div>
+        <div class="field"><label>Seuil 2 alim. (modules)</label><input type="number" id="rseuil-alim" value="20"></div>
+      </div>
+      <div class="field"><label>2 alimentations (DH)</label><input type="number" id="rp-alim2" value="300"></div>
+    </div>
+    <button class="btn a" onclick="calculerR();showRevSub('dim')">✅ Appliquer et calculer</button>
+  </div>
+
+  <!-- RSUB: DEVIS -->
+  <div class="sub" id="rsub-devis">
+    <div class="card">
+      <div class="ctitle">📋 Devis sauvegardés</div>
+      <div id="dv-list-r"><div class="empty-st">Aucun devis sauvegardé</div></div>
+    </div>
+    <div id="dv-wrap-r" style="display:none">
+      <div class="tbox a">
+        <div><div class="tl">TOTAL TOUS DEVIS</div><div class="tv"><span id="dv-tot-r">0</span> <span class="tu">DH</span></div></div>
+        <div class="tr" id="dv-cnt-r"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /wrapper -->
+
+<!-- MODAL SAUVEGARDE -->
+<div class="modal-overlay" id="modal-save" style="display:none" onclick="fermerModal(event)">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-title">💾 Sauvegarder le devis</div>
+    <div class="field" style="margin-bottom:0">
+      <label style="display:block;font-size:13px;font-weight:600;color:#64748b;margin-bottom:6px">Nom du devis</label>
+      <input type="text" id="modal-nom" placeholder="Ex: Panneau Simple 200×40cm">
+    </div>
+    <div class="modal-btns">
+      <button class="mbtn-cancel" onclick="document.getElementById('modal-save').style.display='none'">Annuler</button>
+      <button class="mbtn-ok" id="modal-ok-btn" onclick="confirmerSauvegarde()">✅ Confirmer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== STORAGE (safe) ==========
+var store = (function(){
+  try { localStorage.setItem('t','1'); localStorage.removeItem('t'); return localStorage; }
+  catch(e) { var d={}; return { getItem:function(k){return d[k]||null;}, setItem:function(k,v){d[k]=v;}, removeItem:function(k){delete d[k];} }; }
+})();
+
+// ========== STATE ==========
+var mode = 'simple';
+var revFace = 'simple';
+var devisV = JSON.parse(store.getItem('ldv_v')||'[]');
+var devisR = JSON.parse(store.getItem('ldv_r')||'[]');
+var calcV = null, calcR = null;
+var CODE = '250861@@@';
+var devisCounter = parseInt(store.getItem('ldv_counter')||'0');
+
+function nextNumero(){
+  devisCounter++;
+  store.setItem('ldv_counter', String(devisCounter));
+  return devisCounter;
+}
+
+// ========== NAV ==========
+function goHome(){
+  show('home');
+  document.getElementById('code-input').value='';
+  document.getElementById('code-err').style.display='none';
+}
+
+function goCalc(face){
+  mode = face;
+  updateCalcHeader();
+  show('calc');
+  showSub('dim');
+  calculer();
+}
+
+function show(name){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  document.getElementById('screen-'+name).classList.add('active');
+}
+
+function checkCode(){
+  var v = document.getElementById('code-input').value;
+  var err = document.getElementById('code-err');
+  if(v === CODE){
+    err.style.display='none';
+    show('revient');
+    showRevSub('dim');
+    calculerR();
+    updBadge('r');
+  } else if(v.length >= CODE.length){
+    err.style.display='block';
+  } else {
+    err.style.display='none';
+  }
+}
+
+function updateCalcHeader(){
+  var isD = mode==='double';
+  document.getElementById('calc-title').textContent = isD ? 'P10 Double Face' : 'P10 Simple Face';
+  var badge = document.getElementById('calc-badge');
+  badge.textContent = isD ? '📺 Double' : '📺 Simple';
+  badge.className = 'scr-badge '+(isD?'p':'b');
+  document.getElementById('support-card').style.display = isD?'block':'none';
+  document.getElementById('cache-config').style.display = isD?'none':'block';
+  document.getElementById('tbox-v').className = 'tbox '+(isD?'p':'b');
+  document.getElementById('save-btn-v').className = 'btn '+(isD?'p':'b');
+  document.getElementById('v-dinfo').className = 'dinfo '+(isD?'p':'b');
+}
+
+// ========== TABS VENTE ==========
+var vTabs = ['dim','prix','regles','devis'];
+function showSub(name){
+  document.querySelectorAll('#screen-calc .sub').forEach(function(s){s.classList.remove('active');});
+  document.getElementById('sub-'+name).classList.add('active');
+  vTabs.forEach(function(n,i){
+    var t = document.getElementById('vt'+i);
+    if(t) t.className = 'tab'+(n===name?' act-b':'');
+  });
+  renderDevis('v');
+}
+
+// ========== TABS REVIENT ==========
+var rTabs = ['dim','prix','devis'];
+function showRevSub(name){
+  document.querySelectorAll('#screen-revient .sub').forEach(function(s){s.classList.remove('active');});
+  document.getElementById('rsub-'+name).classList.add('active');
+  rTabs.forEach(function(n,i){
+    var t = document.getElementById('rt'+i);
+    if(t) t.className = 'tab'+(n===name?' act-a':'');
+  });
+  renderDevis('r');
+}
+
+function setRevFace(face){
+  revFace = face;
+  document.getElementById('rfbtn-s').className = 'fbtn'+(face==='simple'?' ab':'');
+  document.getElementById('rfbtn-d').className = 'fbtn'+(face==='double'?' ap':'');
+  document.getElementById('r-support-card').style.display = face==='double'?'block':'none';
+  document.getElementById('r-dinfo').className = 'dinfo '+(face==='double'?'p':'b');
+  calculerR();
+}
+
+// ========== HELPERS ==========
+function gv(id){ var el=document.getElementById(id); return el ? (parseFloat(el.value)||0) : 0; }
+function gi(id){ var el=document.getElementById(id); return el ? (parseInt(el.value)||0) : 0; }
+
+function calcWifi(rows, p2, p4, p8){
+  var r=rows, cost=0, cards=[];
+  while(r>0){
+    if(r>=5){ cost+=p8; cards.push('8L'); r-=8; }
+    else if(r>=3){ cost+=p4; cards.push('4L'); r-=4; }
+    else { cost+=p2; cards.push('2L'); r-=2; }
+  }
+  return {cost:cost, label:cards.join('+')};
+}
+
+function core(panH, panW, isDouble, pf){
+  var BORD=0.08;
+  var rows = Math.max(1, Math.round((panH-BORD)/0.16));
+  var cols = Math.max(1, Math.round((panW-BORD)/0.32));
+  var modBase = cols*rows;
+  var nbMod = isDouble ? modBase*2 : modBase;
+  var rW = cols*0.32+BORD, rH = rows*0.16+BORD;
+  var surf = rW*rH, perim = 2*(rW+rH);
+
+  // Alu
+  var cAlu, aluDesc;
+  if(!isDouble){
+    var pAlu=gv(pf+'alu'), pmAlu=pAlu/6, nbAlu=Math.ceil(perim/6), reste=(nbAlu*6-perim);
+    cAlu = perim*pmAlu;
+    aluDesc = (perim*100).toFixed(0)+'cm × '+pmAlu.toFixed(2)+' DH/m ('+nbAlu+' barre'+(nbAlu>1?'s':'')+', chute '+(reste*100).toFixed(0)+'cm)';
+  } else {
+    var pAluDf=gv(pf+'alu-df');
+    cAlu = perim*pAluDf;
+    aluDesc = (perim*100).toFixed(0)+'cm × '+pAluDf+' DH/m (double face)';
+  }
+
+  // Faux cadre
+  var nbFoc=cols+1, hMod=rows*0.16;
+  var longFoc = isDouble ? nbFoc*hMod*2 : nbFoc*hMod;
+  var pFoc=gv(pf+'foc'), pmFoc=pFoc/6, nbBFoc=Math.ceil(longFoc/6), resteFoc=(nbBFoc*6-longFoc);
+  var cFoc = longFoc*pmFoc;
+  var focDesc = nbFoc+' × '+(hMod*100).toFixed(0)+'cm'+(isDouble?' × 2':'')+' = '+(longFoc*100).toFixed(0)+'cm ('+nbBFoc+' barre'+(nbBFoc>1?'s':'')+', chute '+(resteFoc*100).toFixed(0)+'cm)';
+
+  // Cache
+  var cCache=0, cacheDesc='Supprimé (double face)';
+  if(!isDouble){ var pC=gv(pf+'cache'); cCache=surf*pC; cacheDesc=surf.toFixed(3)+' m² × '+pC+' DH/m²'; }
+
+  // Coudes
+  var cCoudes, coudesDesc;
+  if(!isDouble){ var pc=gv(pf+'coude'), nc=gi(pf.replace('p-','')+'nb-coude'); cCoudes=pc*nc; coudesDesc=nc+' × '+pc+' DH'; }
+  else { var pcd=gv(pf+'coude-df'), ncd=gi(pf.replace('p-','')+'nb-coude-df'); cCoudes=pcd*ncd; coudesDesc=ncd+' × '+pcd+' DH'; }
+
+  // WiFi
+  var wifi = calcWifi(rows, gv(pf+'wifi2'), gv(pf+'wifi4'), gv(pf+'wifi8'));
+
+  // Alim
+  var seuil=gi(pf.replace('p-','')+'seuil-alim')||20, pa1=gv(pf+'alim1'), pa2=gv(pf+'alim2');
+  var cAlim, alimLabel;
+  if(!isDouble){ cAlim=modBase<=seuil?pa1:pa2; alimLabel=(modBase<=seuil?'1':'2')+' alimentation'+(modBase>seuil?'s':''); }
+  else { cAlim=modBase<=seuil?pa2:pa2*2; alimLabel=(modBase<=seuil?'2':'4')+' alimentations'; }
+
+  var cMod = nbMod*gv(pf+'module');
+  // Support : ID correct selon le préfixe
+  var suppId = pf==='p-' ? 'v-support' : 'r-support';
+  var cSupp = isDouble ? gv(suppId) : 0;
+  // Effacer warning support si rempli
+  if(isDouble){
+    var sfx2 = pf==='p-'?'v':'r';
+    var sw=document.getElementById(sfx2+'-support-warn');
+    var si=document.getElementById(sfx2+'-support');
+    if(sw && si && si.value!=='') { sw.style.display='none'; si.style.borderColor=''; }
+  }
+  var total = cMod+cAlu+cFoc+cCache+cCoudes+wifi.cost+cAlim+cSupp;
+
+  return {rows:rows,cols:cols,modBase:modBase,nbMod:nbMod,rW:rW,rH:rH,surf:surf,perim:perim,
+    cMod:cMod,cAlu:cAlu,aluDesc:aluDesc,cFoc:cFoc,focDesc:focDesc,
+    cCache:cCache,cacheDesc:cacheDesc,cCoudes:cCoudes,coudesDesc:coudesDesc,
+    wifi:wifi,cAlim:cAlim,alimLabel:alimLabel,cSupp:cSupp,total:total};
+}
+
+// ========== CALCULER VENTE ==========
+function calculer(){
+  var isD = mode==='double';
+  var pH = gv('v-h')/100, pW = gv('v-w')/100;
+  if(!pH||!pW) return;
+  var c = core(pH, pW, isD, 'p-');
+  calcV = Object.assign({},c,{isDouble:isD});
+
+  var di = document.getElementById('v-dinfo');
+  di.innerHTML = '→ <b>'+c.cols+' × '+c.rows+'</b> modules'+(isD?' <b>× 2 faces</b>':'')+' = <b>'+c.nbMod+' modules</b> · Réel : <b>'+(c.rW*100).toFixed(0)+' × '+(c.rH*100).toFixed(0)+' cm</b>';
+
+  var ac = isD?'cp':'cb';
+  var x2 = isD?'<span class="x2pill">×2</span>':'';
+  document.getElementById('rg-v').innerHTML = resHTML(c,ac,x2,isD);
+  document.getElementById('tot-v').textContent = c.total.toFixed(2);
+  document.getElementById('tot-det-v').innerHTML = 'Modules: '+c.cMod.toFixed(0)+' DH<br>Alu: '+c.cAlu.toFixed(0)+' DH<br>Faux cadre: '+c.cFoc.toFixed(0)+' DH<br>'+(isD?'Support: '+c.cSupp.toFixed(0):' Cache: '+c.cCache.toFixed(0))+' DH';
+  document.getElementById('det-v').innerHTML = detHTML(c,isD,'p-');
+  drawCv(c.cols,c.rows,isD,'cv-v','vw-v','vh-v');
+  calculerMargeV();
+}
+
+// ========== CALCULER REVIENT ==========
+function calculerR(){
+  var isD = revFace==='double';
+  var pH = gv('r-h')/100, pW = gv('r-w')/100;
+  if(!pH||!pW) return;
+  var c = core(pH, pW, isD, 'rp-');
+  calcR = Object.assign({},c,{isDouble:isD});
+
+  var di = document.getElementById('r-dinfo');
+  di.innerHTML = '→ <b>'+c.cols+' × '+c.rows+'</b> modules'+(isD?' <b>× 2 faces</b>':'')+' = <b>'+c.nbMod+' modules</b> · Réel : <b>'+(c.rW*100).toFixed(0)+' × '+(c.rH*100).toFixed(0)+' cm</b>';
+
+  var ac = isD?'cp':'ca';
+  var x2 = isD?'<span class="x2pill">×2</span>':'';
+  document.getElementById('rg-r').innerHTML = resHTML(c,ac,x2,isD);
+  document.getElementById('tot-r').textContent = c.total.toFixed(2);
+  document.getElementById('tot-det-r').innerHTML = 'Modules: '+c.cMod.toFixed(0)+' DH<br>Alu: '+c.cAlu.toFixed(0)+' DH<br>Faux cadre: '+c.cFoc.toFixed(0)+' DH<br>'+(isD?'Support: '+c.cSupp.toFixed(0):' Cache: '+c.cCache.toFixed(0))+' DH';
+  document.getElementById('det-r').innerHTML = detHTML(c,isD,'rp-');
+  drawCv(c.cols,c.rows,isD,'cv-r','vw-r','vh-r');
+  calculerMarge();
+}
+
+function resHTML(c,ac,x2,isD){
+  return '<div class="rcard"><div class="rl">🧩 Modules'+x2+'</div><div class="rv '+ac+'">'+c.nbMod+'</div><div class="rs">'+c.cols+'×'+c.rows+(isD?' ×2':'')+'</div></div>'+
+    '<div class="rcard"><div class="rl">🔩 Aluminium</div><div class="rv '+ac+'">'+c.cAlu.toFixed(0)+' DH</div><div class="rs">'+( c.perim*100).toFixed(0)+'cm périmètre</div></div>'+
+    '<div class="rcard"><div class="rl">📌 Faux Cadre'+x2+'</div><div class="rv '+ac+'">'+c.cFoc.toFixed(0)+' DH</div><div class="rs">'+(c.cols+1)+' barres'+(isD?' ×2':'')+'</div></div>'+
+    '<div class="rcard"><div class="rl">📶 WiFi</div><div class="rv '+ac+'">'+c.wifi.cost+' DH</div><div class="rs">'+c.wifi.label+' ('+c.rows+' rang.)</div></div>'+
+    '<div class="rcard"><div class="rl">⚡ Alim'+x2+'</div><div class="rv cr">'+c.cAlim+' DH</div><div class="rs">'+c.alimLabel+'</div></div>'+
+    '<div class="rcard"><div class="rl">📐 Taille réelle</div><div class="rv" style="font-size:14px;margin-top:2px">'+(c.rW*100).toFixed(0)+'×'+(c.rH*100).toFixed(0)+'</div><div class="rs">cm · '+c.surf.toFixed(2)+' m²</div></div>';
+}
+
+function detHTML(c,isD,pf){
+  var rows=[
+    {n:'🧩 Modules LED'+(isD?' (×2)':''), c:c.nbMod+' × '+gv(pf+'module')+' DH', p:c.cMod},
+    {n:'🔩 Aluminium', c:c.aluDesc, p:c.cAlu},
+    {n:'📌 Faux cadre'+(isD?' (×2)':''), c:c.focDesc, p:c.cFoc},
+  ];
+  if(!isD) rows.push({n:'🪟 Cache arrière',c:c.cacheDesc,p:c.cCache});
+  rows.push(
+    {n:'🔗 Coudes',c:c.coudesDesc,p:c.cCoudes},
+    {n:'📶 WiFi ('+c.wifi.label+')',c:c.rows+' rangées verticales',p:c.wifi.cost},
+    {n:'⚡ '+c.alimLabel,c:c.modBase+' modules/face',p:c.cAlim}
+  );
+  if(isD) rows.push({n:'🏗️ Support double face',c:'Saisie manuelle',p:c.cSupp||0});
+  return rows.map(function(d){
+    return '<div class="drow"><div><div class="dn">'+d.n+'</div><div class="dc">'+d.c+'</div></div><div class="dp">'+d.p.toFixed(2)+' DH</div></div>';
+  }).join('');
+}
+
+// ========== CANVAS ==========
+function drawCv(cols,rows,isD,cvId,wId,hId){
+  var cv = document.getElementById(cvId);
+  if(!cv) return;
+  var maxW = Math.min(window.innerWidth-44,560);
+  var cw = Math.max(8,Math.min(40,Math.floor((maxW-16)/cols)));
+  var ch = Math.round(cw*0.5);
+  cv.width = cols*cw+16; cv.height = rows*ch+16;
+  var ctx = cv.getContext('2d');
+  ctx.clearRect(0,0,cv.width,cv.height);
+  var ox=8,oy=8;
+  var mFill=isD?'#ede9fe':'#dbeafe';
+  var mStr=isD?'#c4b5fd':'#93c5fd';
+  var dot=isD?'#7c3aed55':'#2563eb55';
+  for(var r=0;r<rows;r++){
+    for(var c=0;c<cols;c++){
+      ctx.fillStyle=mFill; ctx.fillRect(ox+c*cw,oy+r*ch,cw-1,ch-1);
+      ctx.strokeStyle=mStr; ctx.lineWidth=1; ctx.strokeRect(ox+c*cw,oy+r*ch,cw-1,ch-1);
+      if(cw>=14){
+        ctx.fillStyle=dot;
+        [[.25,.25],[.75,.25],[.25,.75],[.75,.75]].forEach(function(p){
+          ctx.fillRect(ox+c*cw+cw*p[0]-1,oy+r*ch+ch*p[1]-1,2,2);
+        });
+      }
+    }
+  }
+  ctx.strokeStyle=isD?'#7c3aed':'#2563eb'; ctx.lineWidth=2.5;
+  ctx.strokeRect(ox-.5,oy-.5,cols*cw+.5,rows*ch+.5);
+  ctx.strokeStyle=isD?'#7c3aed66':'#2563eb66'; ctx.lineWidth=1.5;
+  for(var f=0;f<=cols;f++){
+    var x=ox+f*cw; ctx.beginPath(); ctx.moveTo(x,oy); ctx.lineTo(x,oy+rows*ch); ctx.stroke();
+  }
+  var wEl=document.getElementById(wId), hEl=document.getElementById(hId);
+  if(wEl) wEl.textContent='← '+cols+' modules ('+cols*32+'cm) →';
+  if(hEl) hEl.textContent='↕ '+rows+' rang. ('+rows*16+'cm)';
+}
+
+// ========== SAUVEGARDER (modal) ==========
+var modalType = 'v'; // 'v' ou 'r'
+
+function ouvrirModal(type){
+  var c = type==='v' ? calcV : calcR;
+  if(!c) return;
+  // Validation support double face
+  if(c.isDouble){
+    var sfx = type==='v'?'v':'r';
+    var sv=document.getElementById(sfx+'-support');
+    var sw=document.getElementById(sfx+'-support-warn');
+    if(!sv || sv.value==='' || sv.value===null){
+      if(sw) sw.style.display='block';
+      if(sv){ sv.focus(); sv.style.borderColor='#dc2626'; }
+      return;
+    }
+    if(sw) sw.style.display='none';
+    if(sv) sv.style.borderColor='';
+  }
+  modalType = type;
+  var face = c.isDouble?'Double':'Simple';
+  var def = (type==='v'?'Panneau ':'Revient ')+face+' '+(c.rW*100).toFixed(0)+'×'+(c.rH*100).toFixed(0)+'cm';
+  document.getElementById('modal-nom').value = def;
+  document.getElementById('modal-title').textContent = '💾 Sauvegarder le devis';
+  var btn = document.getElementById('modal-ok-btn');
+  btn.className = 'mbtn-ok '+(type==='r'?'a':(c.isDouble?'p':''));
+  document.getElementById('modal-save').style.display='flex';
+  setTimeout(function(){ document.getElementById('modal-nom').focus(); }, 100);
+}
+
+function sauvegarder(){ ouvrirModal('v'); }
+function sauvegarderR(){ ouvrirModal('r'); }
+
+function fermerModal(e){
+  if(e.target===document.getElementById('modal-save'))
+    document.getElementById('modal-save').style.display='none';
+}
+
+function confirmerSauvegarde(){
+  var nomEl = document.getElementById('modal-nom');
+  var nom = nomEl.value.trim();
+  if(!nom){ nomEl.style.borderColor='#dc2626'; nomEl.focus(); return; }
+  nomEl.style.borderColor='';
+  document.getElementById('modal-save').style.display='none';
+
+  var t = modalType;
+  var c = t==='v' ? calcV : calcR;
+  var num = nextNumero();
+  var today = new Date();
+  var dateStr = today.toLocaleDateString('fr-FR');
+  var e={
+    id:Date.now(),
+    num:num,
+    nom:nom,
+    date:dateStr,
+    isDouble:c.isDouble,
+    cols:c.cols,
+    rows:c.rows,
+    nbMod:c.nbMod,
+    w:(c.rW*100).toFixed(0),
+    h:(c.rH*100).toFixed(0),
+    surf:c.surf.toFixed(2),
+    wifi:c.wifi.label,
+    alim:c.alimLabel,
+    total:c.total
+  };
+
+  if(t==='v'){
+    devisV.unshift(e);
+    store.setItem('ldv_v',JSON.stringify(devisV));
+    updBadge('v');
+    renderDevis('v');
+    showSub('devis');
+  } else {
+    devisR.unshift(e);
+    store.setItem('ldv_r',JSON.stringify(devisR));
+    updBadge('r');
+    renderDevis('r');
+    showRevSub('devis');
+  }
+}
+
+function suppr(type,id){
+  if(type==='v'){ devisV=devisV.filter(function(d){return d.id!==id;}); store.setItem('ldv_v',JSON.stringify(devisV)); }
+  else { devisR=devisR.filter(function(d){return d.id!==id;}); store.setItem('ldv_r',JSON.stringify(devisR)); }
+  renderDevis(type);
+}
+
+function updBadge(t){
+  var n=t==='v'?devisV.length:devisR.length;
+  var el=document.getElementById('b'+t);
+  if(el) el.textContent=n;
+}
+
+function renderDevis(t){
+  var list=t==='v'?devisV:devisR;
+  var el=document.getElementById('dv-list-'+t);
+  var wrap=document.getElementById('dv-wrap-'+t);
+  updBadge(t);
+  if(!list.length){
+    el.innerHTML='<div class="empty-st">Aucun devis sauvegardé</div>';
+    if(wrap) wrap.style.display='none';
+    return;
+  }
+  el.innerHTML=list.map(function(d){
+    var pc=d.isDouble?'dvprice p':'dvprice';
+    return '<div class="dvitem '+(d.isDouble?'do':'si')+'">'+
+      '<div class="dvtop">'+
+        '<div><div class="dvnom">'+d.nom+'<span class="fpill '+(d.isDouble?'d':'s')+'">'+(d.isDouble?'Double':'Simple')+'</span></div><div class="dvdate">'+(d.num?'N°'+String(d.num).padStart(3,'0')+' - ':'')+d.date+'</div></div>'+
+        '<div style="display:flex;align-items:center;gap:8px"><div class="'+pc+'">'+parseFloat(d.total).toFixed(2)+' DH</div><button class="delbtn" onclick="suppr(\''+t+'\','+d.id+')">✕</button></div>'+
+      '</div>'+
+      '<div class="dvdet">📐 '+d.w+'×'+d.h+' cm · 🧩 '+d.nbMod+' mod. ('+d.cols+'×'+d.rows+(d.isDouble?' ×2':'')+')<br>📶 '+d.wifi+' · ⚡ '+d.alim+' · 🪟 '+d.surf+' m²</div>'+
+    '</div>';
+  }).join('');
+  var tot=list.reduce(function(a,d){return a+parseFloat(d.total);},0);
+  document.getElementById('dv-tot-'+t).textContent=tot.toFixed(2);
+  document.getElementById('dv-cnt-'+t).textContent=list.length+' devis';
+  if(wrap) wrap.style.display='block';
+}
+
+// ========== INIT ==========
+updBadge('v');
+updBadge('r');
+
+// ========== FONCTION MARGE GÉNÉRIQUE ==========
+function afficherMarge(total, margeId, resultId){
+  var marge = gv(margeId);
+  var prixVente = total * (1 + marge/100);
+  var benefice = prixVente - total;
+  var el = document.getElementById(resultId);
+  if(!el) return;
+  el.innerHTML =
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+
+      '<div style="background:linear-gradient(135deg,#16a34a,#15803d);border-radius:12px;padding:12px;text-align:center">'+
+        '<div style="font-size:10px;color:rgba(255,255,255,.8);font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">Prix de vente</div>'+
+        '<div style="font-size:22px;font-weight:900;color:#fff">'+prixVente.toFixed(0)+'</div>'+
+        '<div style="font-size:12px;color:rgba(255,255,255,.8);font-weight:600">DH</div>'+
+      '</div>'+
+      '<div style="background:linear-gradient(135deg,#0891b2,#0e7490);border-radius:12px;padding:12px;text-align:center">'+
+        '<div style="font-size:10px;color:rgba(255,255,255,.8);font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">Bénéfice</div>'+
+        '<div style="font-size:22px;font-weight:900;color:#fff">'+benefice.toFixed(0)+'</div>'+
+        '<div style="font-size:12px;color:rgba(255,255,255,.8);font-weight:600">DH (+'+marge+'%)</div>'+
+      '</div>'+
+    '</div>'+
+    '<div style="margin-top:8px;background:var(--sur2);border:1px solid var(--brd);border-radius:10px;padding:9px 12px;font-size:12px;color:var(--sl3)">'+
+      '💰 Coût: <b style="color:var(--amb)">'+total.toFixed(2)+' DH</b> &nbsp;→&nbsp; '+
+      'Vente: <b style="color:#16a34a">'+prixVente.toFixed(2)+' DH</b> &nbsp;→&nbsp; '+
+      'Bénéfice: <b style="color:#0891b2">'+benefice.toFixed(2)+' DH</b>'+
+    '</div>';
+}
+
+function calculerMargeV(){
+  if(!calcV) return;
+  afficherMarge(calcV.total, 'v-marge', 'marge-result-v');
+}
+
+function calculerMarge(){
+  if(!calcR) return;
+  afficherMarge(calcR.total, 'r-marge', 'marge-result');
+}
+</script>
+
+</body>
+</html>
+
